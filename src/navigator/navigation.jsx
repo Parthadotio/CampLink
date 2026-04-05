@@ -1,5 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import { Text, View } from 'react-native'
 
 const navigation = () => {
   return (
@@ -10,5 +9,3 @@ const navigation = () => {
 }
 
 export default navigation
-
-const styles = StyleSheet.create({})
