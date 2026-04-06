@@ -18,7 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
-import axios from '../utils/axios.js';
+import axios from '../../utils/axios.js';
 
 const DEPARTMENTS = [
   'Computer Science',
@@ -111,7 +111,7 @@ const Register = () => {
     setError('');
     axios
       .post('/auth/register', {
-        name: userName,
+        userName,
         email,
         password,
         department,
@@ -149,7 +149,7 @@ const Register = () => {
             <View style={styles.logoContainer}>
               <View style={styles.appImageContainer}>
                 <Image
-                  source={require('../../assets/log-transparent.png')}
+                  source={require('../../../assets/log-transparent.png')}
                   style={styles.appImage}
                   resizeMode="contain"
                 />

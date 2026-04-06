@@ -1,4 +1,11 @@
-import { StyleSheet, Text, View, TouchableOpacity, Image, Pressable } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Image,
+  Pressable,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -26,7 +33,7 @@ const Main = () => {
         <View style={styles.logoContainer}>
           <View style={styles.appImageContainer}>
             <Image
-              source={require('../../assets/log-transparent.png')}
+              source={require('../../../assets/log-transparent.png')}
               style={styles.appImage}
               resizeMode="contain"
             />
@@ -41,7 +48,7 @@ const Main = () => {
             <Text style={styles.primaryText}>Let's Get Started</Text>
           </TouchableOpacity>
           <View style={styles.signInBar}>
-            <Text style={{color : 'white'}}>Already have an account?</Text>
+            <Text style={{ color: 'white' }}>Already have an account?</Text>
             <Pressable onPress={() => navigation.navigate('Login')}>
               <Text style={styles.signInText}>Sign in</Text>
             </Pressable>
@@ -95,7 +102,7 @@ const styles = StyleSheet.create({
     fontWeight: 600,
     letterSpacing: 0.3,
   },
-   appImageContainer: {
+  appImageContainer: {
     width: 90,
     height: 90,
     borderRadius: 45,

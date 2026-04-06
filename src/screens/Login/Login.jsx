@@ -14,13 +14,30 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
+import axios from '../../utils/axios.js';
+import { useAuth } from '../../context/userAuth.jsx';
 
 const Login = () => {
-
   const navigation = useNavigation();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  function submitHandler() {
+    axios
+      .post('/auth/login', {
+        email,
+        password,
+      })
+      .then(res => {
+        login(res.data?.token);
+        console.log(res.data);
+      })
+      .catch(err => {
+        console.log(err.response?.data);
+      });
+  }
 
   return (
     <LinearGradient
@@ -39,7 +56,7 @@ const Login = () => {
             <View style={styles.logoContainer}>
               <View style={styles.appImageContainer}>
                 <Image
-                  source={require('../../assets/log-transparent.png')}
+                  source={require('../../../assets/log-transparent.png')}
                   style={styles.appImage}
                   resizeMode="contain"
                 />
@@ -81,14 +98,18 @@ const Login = () => {
                   textContentType="password"
                 />
               </View>
-              <TouchableOpacity style={styles.button} activeOpacity={0.85}>
+              <TouchableOpacity
+                style={styles.button}
+                activeOpacity={0.85}
+                onPress={submitHandler}
+              >
                 <Text style={styles.buttonText}>Sign In</Text>
               </TouchableOpacity>
               <View style={styles.redirectRow}>
-                <Text style={styles.redirectText}>
-                  Don't have an account?{' '}
-                </Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                <Text style={styles.redirectText}>Don't have an account? </Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Register')}
+                >
                   <Text style={styles.redirectLink}>Register</Text>
                 </TouchableOpacity>
               </View>
