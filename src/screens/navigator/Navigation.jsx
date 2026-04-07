@@ -39,6 +39,8 @@ const AppTabs = () => {
           marginBottom: 6,
           marginLeft: 4,
           marginRight: 4,
+          backgroundColor: '#A1B5D8',
+          position: 'absolute',
         },
       })}
     >
