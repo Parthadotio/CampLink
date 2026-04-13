@@ -6,16 +6,25 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    AsyncStorage.getItem('token').then(token => {
-      setIsLoggedIn(!!token);
+    AsyncStorage.getItem('token').then(async token => {
+      if (token) {
+        const stored = await AsyncStorage.getItem('user');
+        if (stored) setUser(JSON.parse(stored));
+        setIsLoggedIn(true);
+      }
       setLoading(false);
     });
   }, []);
 
-  const login = async token => {
+  const login = async (token, userData) => {
     await AsyncStorage.setItem('token', token);
+    await AsyncStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+    console.log(userData);
+
     setIsLoggedIn(true);
   };
 
@@ -25,7 +34,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, loading, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, loading, login, logout, user }}>
       {children}
     </AuthContext.Provider>
   );

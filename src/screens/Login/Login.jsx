@@ -31,8 +31,9 @@ const Login = () => {
         password,
       })
       .then(res => {
-        login(res.data?.token);
-        console.log(res.data);
+        login(res.data?.token, res.data?.user);
+        console.log('token:', res.data?.token);
+        console.log('user:', res.data?.user);
       })
       .catch(err => {
         console.log(err.response?.data);

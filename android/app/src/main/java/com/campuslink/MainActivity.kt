@@ -1,4 +1,4 @@
-package com.musix
+package com.app.campuslink
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

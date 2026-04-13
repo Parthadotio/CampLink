@@ -5,186 +5,211 @@ import {
   StatusBar,
   Pressable,
   Image,
+  ScrollView,
+  useWindowDimensions,
 } from 'react-native';
+import { useState, useEffect } from 'react';
 import Icon from 'react-native-vector-icons/Feather';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useAuth } from '../../context/userAuth.jsx';
+import axios from '../../utils/axios.js';
+
+const EVENTS_CATEGORIES = ['All', 'Tech', 'Business', 'Art', 'Music', 'Sports'];
 
 const Home = () => {
-  const events = ['All', 'Tech', 'Business', 'Art', 'Music', 'Sports'];
+  const { width } = useWindowDimensions();
+  const { user } = useAuth();
+
+  const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get('/events')
+      .then(res => setEvents(res.data))
+      .catch(err => {
+        console.log(err.res?.data);
+      });
+  }, []);
+
+  const isTablet = width >= 768;
+  const cardWidth = isTablet ? (width - 60) / 2 : '100%';
+  const avatarSize = isTablet ? 72 : 56;
+  const nameFontSize = isTablet ? 48 : 36;
+  const imageHeight = isTablet ? 240 : 180;
+  const filterBtnWidth = isTablet
+    ? 100
+    : Math.floor((width - 64) / EVENTS_CATEGORIES.length);
 
   return (
-    <View style={styles.main}>
-      <StatusBar backgroundColor="#FFFCF7" barStyle="dark-content" />
-      <View style={styles.secondMain}>
+    <SafeAreaProvider>
+      <View style={styles.container}>
+        <StatusBar backgroundColor="#FFFCF7" barStyle="dark-content" />
         <View style={styles.upper}>
           <View style={styles.upperLeft}>
+            <Image
+              source={
+                user?.profilePhotoUrl
+                  ? { uri: user.profilePhotoUrl }
+                  : require('../../../assets/logo.png')
+              }
+              style={[styles.appImage, { height: avatarSize, width: avatarSize }]}
+              resizeMode="cover"
+            />
             <View>
-              <View style={styles.user} />
-            </View>
-            <View>
-              <Text>Welcome</Text>
-              <Text style={styles.upperUserText}>Partha</Text>
+              <Text style={styles.welcomeText}>Welcome</Text>
+              <Text style={[styles.upperUserText, { fontSize: nameFontSize }]}>
+                {user.name}
+              </Text>
             </View>
           </View>
-          <View>
-            <Pressable>
-              <Icon name="bell" size={28} color="black" />
-            </Pressable>
-          </View>
+          <Pressable>
+            <Icon name="bell" size={isTablet ? 32 : 26} color="black" />
+          </Pressable>
         </View>
-        <View style={styles.mid}>
-          <View>
-            <Text style={styles.catText}>Categories</Text>
-          </View>
-          <View style={styles.eventFilterButton}>
-            {events.map((event, index) => (
-              <Pressable key={index} style={styles.eventbtn}>
-                <Text>{event}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-        <View style={styles.lower}>
-          <View style={styles.card}>
-            <View style={styles.cardImage}>
-              <Image
-                source={require('../../../assets/log-transparent.png')}
-                style={styles.cardImageStyle}
-              />
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.main}>
+            <View style={styles.mid}>
+              <Text style={styles.catText}>Categories</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.eventFilterButton}
+              >
+                {EVENTS_CATEGORIES.map((event, index) => (
+                  <Pressable
+                    key={index}
+                    style={[styles.eventbtn, { width: filterBtnWidth }]}
+                  >
+                    <Text style={styles.eventText}>{event}</Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
             </View>
-            <View style={styles.cardDetails}>
-              <View>
-                <Text style={styles.eventName}>Event Name</Text>
-                <Text style={styles.eventDesc}>
-                  Event description goes here
-                </Text>
-              </View>
-              <View style={styles.cardFooter}>
-                <View style={styles.stats}>
-                  <Icon name="users" size={14} color="#aaa" />
-                  <Text style={styles.statText}>312</Text>
-                  <Icon name="file-text" size={14} color="#aaa" />
-                  <Text style={styles.statText}>48</Text>
+            <View style={[styles.lower, isTablet && styles.lowerTablet]}>
+              {events.map(event => (
+                <View
+                  key={event.id}
+                  style={[styles.card, { width: cardWidth }]}
+                >
+                  <View style={[styles.cardImage, { height: imageHeight }]}>
+                    <Image
+                      source={require('../../../assets/log-transparent.png')}
+                      style={styles.cardImageStyle}
+                    />
+                  </View>
+                  <View style={styles.cardDetails}>
+                    <View>
+                      <Text style={styles.eventName}>{event.title}</Text>
+                      <Text style={styles.eventDesc}>{event.desc}</Text>
+                    </View>
+                    <View style={styles.cardFooter}>
+                      <View style={styles.stats}>
+                        <Icon name="map-pin" size={14} color="#aaa" />
+                        <Text style={styles.statText}>{event.venue}</Text>
+                        <Icon name="users" size={14} color="#aaa" />
+                        <Text style={styles.statText}>{event.createdBy}</Text>
+                      </View>
+                      <Pressable style={styles.followBtn}>
+                        <Text style={styles.followText}>Follow</Text>
+                        <Icon name="plus" size={14} color="#111" />
+                      </Pressable>
+                    </View>
+                  </View>
                 </View>
-                <Pressable style={styles.followBtn}>
-                  <Text style={styles.followText}>Follow</Text>
-                  <Icon name="plus" size={14} color="#111" />
-                </Pressable>
-              </View>
+              ))}
             </View>
           </View>
-          <View style={styles.card}>
-            <View style={styles.cardImage}>
-              <Image
-                source={require('../../../assets/log-transparent.png')}
-                style={styles.cardImageStyle}
-              />
-            </View>
-            <View style={styles.cardDetails}>
-              <View>
-                <Text style={styles.eventName}>Event Name</Text>
-                <Text style={styles.eventDesc}>
-                  Event description goes here
-                </Text>
-              </View>
-              <View style={styles.cardFooter}>
-                <View style={styles.stats}>
-                  <Icon name="users" size={14} color="#aaa" />
-                  <Text style={styles.statText}>312</Text>
-                  <Icon name="file-text" size={14} color="#aaa" />
-                  <Text style={styles.statText}>48</Text>
-                </View>
-                <Pressable style={styles.followBtn}>
-                  <Text style={styles.followText}>Follow</Text>
-                  <Icon name="plus" size={14} color="#111" />
-                </Pressable>
-              </View>
-            </View>
-          </View>
-          <View style={styles.card}>
-            <View style={styles.cardImage}>
-              <Image
-                source={require('../../../assets/log-transparent.png')}
-                style={styles.cardImageStyle}
-              />
-            </View>
-            <View style={styles.cardDetails}>
-              <View>
-                <Text style={styles.eventName}>Event Name</Text>
-                <Text style={styles.eventDesc}>
-                  Event description goes here
-                </Text>
-              </View>
-              <View style={styles.cardFooter}>
-                <View style={styles.stats}>
-                  <Icon name="users" size={14} color="#aaa" />
-                  <Text style={styles.statText}>312</Text>
-                  <Icon name="file-text" size={14} color="#aaa" />
-                  <Text style={styles.statText}>48</Text>
-                </View>
-                <Pressable style={styles.followBtn}>
-                  <Text style={styles.followText}>Follow</Text>
-                  <Icon name="plus" size={14} color="#111" />
-                </Pressable>
-              </View>
-            </View>
-          </View>
-        </View>
+        </ScrollView>
       </View>
-    </View>
+    </SafeAreaProvider>
   );
 };
 
 export default Home;
 
 const styles = StyleSheet.create({
-  main: {
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 90,
+  },
+  container: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#FFFCF7',
   },
-  secondMain: {
+  main: {
     flex: 1,
+    paddingHorizontal: 20,
+    backgroundColor: '#FFFCF7',
   },
   upper: {
-    position: 'fixed',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  user: {
-    height: 60,
-    width: 60,
-    borderRadius: 50,
-    backgroundColor: 'red',
-  },
-  upperUserText: {
-    fontSize: 40,
-    fontWeight: 400,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#FFFCF7',
   },
   upperLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
+    gap: 8,
+  },
+  appImage: {
+    borderRadius: 999,
+    backgroundColor: '#e0e0e0',
+  },
+  welcomeText: {
+    fontSize: 13,
+    color: '#888',
+  },
+  upperUserText: {
+    fontWeight: '400',
+    lineHeight: 48,
   },
   mid: {
-    height: 70,
-    marginTop: 12,
+    marginTop: 16,
+  },
+  catText: {
+    fontSize: 13,
+    textTransform: 'uppercase',
+    fontWeight: '500',
+    letterSpacing: 1,
+    color: '#444',
+    marginBottom: 8,
+  },
+  eventFilterButton: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingVertical: 4,
+  },
+  eventbtn: {
+    backgroundColor: '#d5c7c7ff',
+    paddingVertical: 10,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  eventText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#222',
   },
   lower: {
-    flex: 1,
-    marginTop: 12,
-    gap: 12,
+    marginTop: 16,
+    gap: 14,
+  },
+  lowerTablet: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   card: {
     backgroundColor: '#0c0c0c',
     borderRadius: 20,
     overflow: 'hidden',
-    width: '100%',
   },
   cardImage: {
     width: '100%',
-    height: 200,
     backgroundColor: '#141414',
   },
   cardImageStyle: {
@@ -228,33 +253,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#ecdbdbff',
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 50,
+    borderRadius: 999,
   },
   followText: {
     color: '#111',
     fontSize: 13,
     fontWeight: '500',
-  },
-  eventFilterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    gap: 4,
-    marginLeft: 12,
-  },
-  eventbtn: {
-    backgroundColor: '#d5c7c7ff',
-    padding: 12,
-    borderRadius: 50,
-    width: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 6,
-  },
-  catText: {
-    fontSize: 16,
-    marginLeft: 12,
-    textTransform: 'uppercase',
-    fontWeight: '400',
   },
 });

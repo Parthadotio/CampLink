@@ -21,12 +21,15 @@ import { useNavigation } from '@react-navigation/native';
 import axios from '../../utils/axios.js';
 
 const DEPARTMENTS = [
-  'Computer Science',
-  'Electronics',
-  'Mechanical',
-  'Civil',
-  'Information Technology',
-  'Electrical',
+  'Computer Science Engg.',
+  'Electronics Engg.',
+  'Mechanical Engg.',
+  'Civil Engg.',
+  'Electrical Engg.',
+  'Agriculture Engg.',
+  'Forestry',
+  'B. Sc.',
+  'B. Com.',
 ];
 
 const YEARS = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
