@@ -19,6 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import { useAuth } from '../../context/userAuth.jsx';
 import axios from '../../utils/axios.js';
+import { colors } from '../../theme/colors.js';
 
 const DEPARTMENTS = [
   'Computer Science Engg.',
@@ -128,10 +129,10 @@ const EditProfile = () => {
             style={styles.backBtn}
             onPress={() => navigation.goBack()}
           >
-            <Icon name="arrow-left" size={20} color="#111" />
+            <Icon name="arrow-left" size={20} color={colors.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Edit Profile</Text>
-          <View style={{ width: 40 }} />
+          <View style={styles.headerSpacer} />
         </View>
 
         <ScrollView
@@ -159,7 +160,7 @@ const EditProfile = () => {
                     user?.profilePhotoUrl || profilePhoto ? 'camera' : 'plus'
                   }
                   size={14}
-                  color="#fff"
+                  color={colors.background}
                 />
               </TouchableOpacity>
             </View>
@@ -178,7 +179,7 @@ const EditProfile = () => {
               <Icon
                 name="user"
                 size={16}
-                color="#6366f1"
+                color={colors.primary}
                 style={styles.inputIcon}
               />
               <TextInput
@@ -186,7 +187,7 @@ const EditProfile = () => {
                 value={name}
                 onChangeText={setName}
                 placeholder="Your name"
-                placeholderTextColor="#bbb"
+                placeholderTextColor={colors.textSecondary}
                 autoCapitalize="words"
               />
             </View>
@@ -197,7 +198,7 @@ const EditProfile = () => {
               <Icon
                 name="mail"
                 size={16}
-                color="#bbb"
+                color={colors.textSecondary}
                 style={styles.inputIcon}
               />
               <Text style={styles.readonlyText}>{user?.email}</Text>
@@ -217,7 +218,7 @@ const EditProfile = () => {
               <Icon
                 name="book"
                 size={16}
-                color="#6366f1"
+                color={colors.primary}
                 style={styles.inputIcon}
               />
               <Text style={[styles.input, !department && styles.placeholder]}>
@@ -226,7 +227,7 @@ const EditProfile = () => {
               <Icon
                 name={showDeptPicker ? 'chevron-up' : 'chevron-down'}
                 size={16}
-                color="#aaa"
+                color={colors.textSecondary}
               />
             </TouchableOpacity>
             {showDeptPicker && (
@@ -252,7 +253,7 @@ const EditProfile = () => {
                       {dept}
                     </Text>
                     {department === dept && (
-                      <Icon name="check" size={14} color="#6366f1" />
+                      <Icon name="check" size={14} color={colors.primary} />
                     )}
                   </TouchableOpacity>
                 ))}
@@ -272,7 +273,7 @@ const EditProfile = () => {
               <Icon
                 name="calendar"
                 size={16}
-                color="#6366f1"
+                color={colors.primary}
                 style={styles.inputIcon}
               />
               <Text style={[styles.input, !year && styles.placeholder]}>
@@ -281,7 +282,7 @@ const EditProfile = () => {
               <Icon
                 name={showYearPicker ? 'chevron-up' : 'chevron-down'}
                 size={16}
-                color="#aaa"
+                color={colors.textSecondary}
               />
             </TouchableOpacity>
             {showYearPicker && (
@@ -307,7 +308,7 @@ const EditProfile = () => {
                       {y}
                     </Text>
                     {year === y && (
-                      <Icon name="check" size={14} color="#6366f1" />
+                      <Icon name="check" size={14} color={colors.primary} />
                     )}
                   </TouchableOpacity>
                 ))}
@@ -321,10 +322,10 @@ const EditProfile = () => {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={colors.background} />
             ) : (
               <View style={styles.saveBtnInner}>
-                <Icon name="check" size={16} color="#fff" />
+                <Icon name="check" size={16} color={colors.background} />
                 <Text style={styles.saveBtnText}>Save Changes</Text>
               </View>
             )}
@@ -340,7 +341,7 @@ export default EditProfile;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
   },
   flex: { flex: 1 },
   photoSection: {
@@ -358,7 +359,7 @@ const styles = StyleSheet.create({
     height: 96,
     borderRadius: 48,
     borderWidth: 3,
-    borderColor: '#6366f1',
+    borderColor: colors.primary,
   },
   cameraBtn: {
     position: 'absolute',
@@ -367,15 +368,15 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#6366f1',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#f5f5f5',
+    borderColor: colors.background,
   },
   photoHint: {
     fontSize: 12,
-    color: '#aaa',
+    color: colors.textSecondary,
   },
   header: {
     flexDirection: 'row',
@@ -383,15 +384,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: colors.border,
   },
   backBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 2,
@@ -400,10 +401,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 4,
   },
+  headerSpacer: {
+    width: 40,
+  },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111',
+    color: colors.textPrimary,
     letterSpacing: -0.3,
   },
   scroll: {
@@ -416,7 +420,7 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#888',
+    color: colors.textSecondary,
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     marginBottom: 8,
@@ -424,16 +428,16 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#e0e0e0',
+    borderColor: colors.border,
     paddingHorizontal: 14,
     paddingVertical: 14,
     gap: 10,
   },
   inputReadonly: {
-    backgroundColor: '#fafafa',
+    backgroundColor: colors.background,
   },
   inputIcon: {
     width: 20,
@@ -441,29 +445,29 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 15,
-    color: '#111',
+    color: colors.textPrimary,
     padding: 0,
   },
   placeholder: {
-    color: '#bbb',
+    color: colors.textSecondary,
   },
   readonlyText: {
     flex: 1,
     fontSize: 15,
-    color: '#aaa',
+    color: colors.textSecondary,
   },
   hintText: {
     fontSize: 11,
-    color: '#bbb',
+    color: colors.textSecondary,
     marginTop: 5,
     marginLeft: 4,
   },
   dropdown: {
     marginTop: 6,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#e0e0e0',
+    borderColor: colors.border,
     overflow: 'hidden',
     elevation: 4,
     shadowColor: '#000',
@@ -478,17 +482,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 13,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: colors.border,
   },
   dropdownItemActive: {
-    backgroundColor: '#f0f0ff',
+    backgroundColor: colors.background,
   },
   dropdownText: {
     fontSize: 14,
-    color: '#333',
+    color: colors.textPrimary,
   },
   dropdownTextActive: {
-    color: '#6366f1',
+    color: colors.primary,
     fontWeight: '600',
   },
   saveBtn: {
@@ -496,12 +500,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#6366f1',
+    backgroundColor: colors.primary,
     borderRadius: 16,
     paddingVertical: 16,
     marginTop: 8,
     elevation: 4,
-    shadowColor: '#6366f1',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
@@ -517,7 +521,7 @@ const styles = StyleSheet.create({
   saveBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#fff',
+    color: colors.background,
     letterSpacing: 0.3,
   },
 });

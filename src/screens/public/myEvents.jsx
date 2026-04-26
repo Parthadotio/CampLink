@@ -1,173 +1,153 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
   View,
-  ScrollView,
-  Image,
   Pressable,
-  StatusBar,
+  ActivityIndicator,
+  ScrollView,
 } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { colors } from '../../theme/colors';
 import Icon from 'react-native-vector-icons/Feather';
+import { useAuth } from '../../context/userAuth.jsx';
+import axios from '../../utils/axios';
+import { useNavigation } from '@react-navigation/native';
 
-const DUMMY_EVENTS = [
-  {
-    id: '1',
-    title: 'Annual Tech Fest 2025',
-    desc: 'A celebration of innovation, coding challenges, robotics and AI showcases across campus.',
-    venue: 'Main Auditorium',
-    date: '2025-04-20',
-    createdBy: 'CSE Department',
-    status: 'upcoming',
-  },
-  {
-    id: '2',
-    title: 'Cultural Night',
-    desc: 'An evening of music, dance, and drama performances by student clubs.',
-    venue: 'Open Air Theatre',
-    date: '2025-03-10',
-    createdBy: 'Student Council',
-    status: 'past',
-  },
-];
-
-const FILTERS = ['All', 'Upcoming', 'Past'];
+const FILTER_EVENT = ['Past', 'Present', 'Upcoming'];
 
 const MyEvents = () => {
-  const [activeFilter, setActiveFilter] = React.useState('All');
+  const [activeFilter, setActiveFilter] = React.useState('Present');
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const filtered = DUMMY_EVENTS.filter(e => {
-    if (activeFilter === 'All') return true;
-    return e.status === activeFilter.toLowerCase();
-  });
+  const navigation = useNavigation();
+  const { user } = useAuth();
+  const eventIds = user?.registeredEvents;
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      if (!eventIds || eventIds.length === 0) return;
+      try {
+        setLoading(true);
+        const eventPromises = eventIds.map(id => axios.get(`/events/${id}`));
+        const responses = await Promise.all(eventPromises);
+        const eventData = responses.map(res => res.data);
+        setEvents(eventData);
+      } catch (err) {
+        console.log('Failed to fetch registered events', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEvents();
+  }, [eventIds]);
 
   return (
-    <SafeAreaProvider>
-      <StatusBar backgroundColor="#FFFCF7" barStyle="dark-content" />
-      <View style={styles.container}>
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Header */}
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.headerTitle}>My Events</Text>
-              <Text style={styles.headerSub}>Events you've registered for</Text>
-            </View>
+    <View style={styles.root}>
+      <View style={styles.headerRow}>
+        <Text style={styles.header}>My Events</Text>
+        {events.length > 0 && (
+          <View style={styles.countBadge}>
+            <Text style={styles.countText}>{events.length}</Text>
           </View>
+        )}
+      </View>
 
-          {/* Filters */}
-          <View style={styles.filterRow}>
-            {FILTERS.map(f => (
-              <Pressable
-                key={f}
+      <View style={styles.filter}>
+        {FILTER_EVENT.map(category => {
+          const isActive = activeFilter === category;
+          return (
+            <Pressable
+              key={category}
+              onPress={() => setActiveFilter(category)}
+              style={[
+                styles.filterBtn,
+                {
+                  backgroundColor: isActive
+                    ? colors.primary
+                    : colors.background,
+                  borderWidth: 1,
+                  borderColor: colors.primary,
+                },
+              ]}
+            >
+              <Text
                 style={[
-                  styles.filterBtn,
-                  activeFilter === f && styles.filterBtnActive,
+                  styles.filterBtnText,
+                  { color: isActive ? colors.background : colors.primary },
                 ]}
-                onPress={() => setActiveFilter(f)}
               >
-                <Text
-                  style={[
-                    styles.filterText,
-                    activeFilter === f && styles.filterTextActive,
-                  ]}
-                >
-                  {f}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+                {category}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
 
-          {/* Event Cards */}
-          {filtered.map(event => (
-            <EventCard key={event.id} event={event} />
+      {loading ? (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading your events...</Text>
+        </View>
+      ) : events.length > 0 ? (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+        >
+          {events.map(event => (
+            <Pressable
+              key={event.id}
+              onPress={() => navigation.navigate('EventDetails', { event })}
+              style={({ pressed }) => [
+                styles.card,
+                pressed && styles.cardPressed,
+              ]}
+            >
+              <View style={styles.cardTopRow}>
+                <View style={styles.dateChip}>
+                  <Icon name="calendar" size={11} color={colors.primary} />
+                  <Text style={styles.dateChipText}>{event.eventDate}</Text>
+                </View>
+                <View style={styles.timeChip}>
+                  <Icon name="clock" size={11} color={colors.primary} />
+                  <Text style={styles.dateChipText}>{event.eventTime}</Text>
+                </View>
+              </View>
+
+              <Text style={styles.eventName} numberOfLines={1}>
+                {event.title}
+              </Text>
+              <Text style={styles.eventDesc} numberOfLines={2}>
+                {event.desc}
+              </Text>
+
+              <View style={styles.divider} />
+
+              <View style={styles.cardFooter}>
+                <View style={styles.categoryPill}>
+                  <Text style={styles.categoryText}>{event.category}</Text>
+                </View>
+                <View style={styles.venueRow}>
+                  <Icon name="map-pin" size={12} color={colors.primary} />
+                  <Text style={styles.venueText} numberOfLines={1}>
+                    {event.venue}
+                  </Text>
+                </View>
+              </View>
+            </Pressable>
           ))}
         </ScrollView>
-      </View>
-    </SafeAreaProvider>
-  );
-};
-
-const EventCard = ({ event }) => {
-  const isPast = event.status === 'past';
-
-  return (
-    <View style={[styles.card, isPast && styles.cardPast]}>
-      {/* Top accent bar */}
-      <View
-        style={[
-          styles.cardAccent,
-          isPast ? styles.accentPast : styles.accentUpcoming,
-        ]}
-      />
-
-      <View style={styles.cardInner}>
-        {/* Badge */}
-        <View
-          style={[
-            styles.badge,
-            isPast ? styles.badgePast : styles.badgeUpcoming,
-          ]}
-        >
-          <Icon
-            name={isPast ? 'check-circle' : 'clock'}
-            size={11}
-            color={isPast ? '#f87171' : '#4ade80'}
-          />
-          <Text
-            style={[
-              styles.badgeText,
-              isPast ? styles.badgeTextPast : styles.badgeTextUpcoming,
-            ]}
-          >
-            {isPast ? 'Attended' : 'Upcoming'}
+      ) : (
+        <View style={styles.centered}>
+          <View style={styles.emptyIconWrap}>
+            <Icon name="calendar" size={28} color={colors.primary} />
+          </View>
+          <Text style={styles.emptyTitle}>No events found</Text>
+          <Text style={styles.emptySubtitle}>
+            You have no {activeFilter.toLowerCase()} registered events.
           </Text>
         </View>
-
-        {/* Title */}
-        <Text style={styles.cardTitle}>{event.title}</Text>
-        <Text style={styles.cardDesc} numberOfLines={2}>
-          {event.desc}
-        </Text>
-
-        {/* Meta */}
-        <View style={styles.metaRow}>
-          <View style={styles.metaItem}>
-            <Icon name="map-pin" size={12} color="#a78bfa" />
-            <Text style={styles.metaText}>{event.venue}</Text>
-          </View>
-          <View style={styles.metaItem}>
-            <Icon name="calendar" size={12} color="#a78bfa" />
-            <Text style={styles.metaText}>
-              {new Date(event.date).toLocaleDateString('en-IN', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })}
-            </Text>
-          </View>
-          <View style={styles.metaItem}>
-            <Icon name="users" size={12} color="#a78bfa" />
-            <Text style={styles.metaText}>{event.createdBy}</Text>
-          </View>
-        </View>
-
-        {/* Footer */}
-        <View style={styles.cardFooter}>
-          <Pressable style={styles.detailBtn}>
-            <Text style={styles.detailBtnText}>View Details</Text>
-            <Icon name="arrow-right" size={13} color="#6366f1" />
-          </Pressable>
-          {!isPast && (
-            <Pressable style={styles.cancelBtn}>
-              <Text style={styles.cancelBtnText}>Cancel RSVP</Text>
-            </Pressable>
-          )}
-        </View>
-      </View>
+      )}
     </View>
   );
 };
@@ -175,164 +155,177 @@ const EventCard = ({ event }) => {
 export default MyEvents;
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: '#FFFCF7',
+    paddingTop: 24,
+    paddingHorizontal: 20,
+    backgroundColor: colors.background,
   },
-  scroll: {
-    paddingHorizontal: 16,
-    paddingBottom: 100,
-  },
-
-  // Header
-  header: {
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 24,
-    paddingBottom: 20,
+    gap: 10,
+    marginBottom: 16,
   },
-  headerTitle: {
-    fontSize: 28,
+  header: {
+    fontSize: 26,
     fontWeight: '700',
+    color: colors.textPrimary,
     letterSpacing: -0.5,
   },
-  headerSub: {
-    fontSize: 13,
-    color: '#555',
-    marginTop: 2,
-  },
   countBadge: {
-    width: 40,
-    height: 40,
+    backgroundColor: colors.primary,
     borderRadius: 20,
-    backgroundColor: '#1a1a2e',
-    borderWidth: 1.5,
-    borderColor: '#6366f1',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    minWidth: 26,
     alignItems: 'center',
-    justifyContent: 'center',
   },
   countText: {
-    color: '#a5b4fc',
+    color: colors.background,
+    fontSize: 12,
     fontWeight: '700',
-    fontSize: 15,
   },
-
-  // Filters
-  filterRow: {
+  filter: {
+    marginTop: 12,
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
+    alignItems: 'center',
     marginBottom: 20,
   },
   filterBtn: {
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: '#1a1a1e',
-    borderWidth: 1,
-    borderColor: '#2a2a2e',
+    width: 80,
+    backgroundColor: colors.primary,
+    padding: 8,
+    borderRadius: 50,
   },
-  filterBtnActive: {
-    backgroundColor: '#6366f1',
-    borderColor: '#6366f1',
+  filterBtnText: {
+    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: 700,
+    color: colors.background,
   },
-  filterText: { fontSize: 13, fontWeight: '500', color: '#666' },
-  filterTextActive: { color: '#fff' },
-
-  // Card
+  listContent: {
+    gap: 14,
+    paddingBottom: 32,
+  },
   card: {
-    backgroundColor: '#111116',
+    backgroundColor: colors.surface,
     borderRadius: 18,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-    overflow: 'hidden',
-  },
-  cardPast: {
-    opacity: 0.75,
-  },
-  cardAccent: {
-    height: 3,
-  },
-  accentUpcoming: {
-    backgroundColor: '#6366f1',
-  },
-  accentPast: {
-    backgroundColor: '#374151',
-  },
-  cardInner: {
     padding: 16,
-    gap: 10,
+    borderWidth: 0,
   },
-  badge: {
+  cardPressed: {
+    opacity: 0.8,
+    transform: [{ scale: 0.985 }],
+  },
+  cardTopRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 10,
+  },
+  dateChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    alignSelf: 'flex-start',
+    backgroundColor: colors.background,
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: 6,
-    borderWidth: 1,
   },
-  badgeUpcoming: {
-    backgroundColor: 'rgba(74,222,128,0.1)',
-    borderColor: 'rgba(74,222,128,0.25)',
-  },
-  badgePast: {
-    backgroundColor: 'rgba(248,113,113,0.1)',
-    borderColor: 'rgba(248,113,113,0.25)',
-  },
-  badgeText: { fontSize: 11, fontWeight: '600' },
-  badgeTextUpcoming: { color: '#4ade80' },
-  badgeTextPast: { color: '#f87171' },
-
-  cardTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#fff',
-    letterSpacing: -0.3,
-  },
-  cardDesc: {
-    fontSize: 13,
-    color: '#666',
-    lineHeight: 18,
-  },
-  metaRow: { gap: 5 },
-  metaItem: {
+  timeChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
+    backgroundColor: colors.background,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
-  metaText: { fontSize: 12, color: '#555' },
-
-  // Footer
+  dateChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  eventName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 4,
+    letterSpacing: -0.3,
+  },
+  eventDesc: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 18,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: 12,
+  },
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 4,
   },
-  detailBtn: {
+  categoryPill: {
+    backgroundColor: colors.secondary,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 50,
+  },
+  categoryText: {
+    color: colors.textPrimary,
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  venueRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 4,
+    flex: 1,
+    justifyContent: 'flex-end',
   },
-  detailBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6366f1',
-  },
-  cancelBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(239,68,68,0.3)',
-    backgroundColor: 'rgba(239,68,68,0.08)',
-  },
-  cancelBtnText: {
+  venueText: {
     fontSize: 12,
-    color: '#f87171',
+    color: colors.textSecondary,
     fontWeight: '500',
+    maxWidth: 140,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: 60,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  emptyIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  emptyTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    maxWidth: 220,
+    lineHeight: 18,
   },
 });

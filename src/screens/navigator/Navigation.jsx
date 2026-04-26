@@ -4,7 +4,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
-  fade,
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -20,6 +19,9 @@ import Home from '../public/Home.jsx';
 import MyEvents from '../public/MyEvents.jsx';
 import Profile from '../public/Profile.jsx';
 import EditProfile from '../public/EditProfile.jsx';
+import EventDetails from '../public/EventDetails.jsx';
+import Admin from '../admin/Admin.jsx';
+import { colors } from '../../theme/colors.js';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -46,7 +48,7 @@ function TabBar({ state, navigation }) {
               <Icon
                 name={tab.icon}
                 size={20}
-                color={isFocused ? '#6366f1' : '#333'}
+                color={isFocused ? colors.primary : colors.textSecondary}
               />
               {isFocused && <Text style={styles.label}>{tab.name}</Text>}
             </TouchableOpacity>
@@ -67,7 +69,7 @@ const styles = StyleSheet.create({
   },
   bar: {
     flexDirection: 'row',
-    backgroundColor: '#FFFCF7',
+    backgroundColor: colors.background,
     borderRadius: 50,
     paddingHorizontal: 10,
     paddingVertical: 8,
@@ -88,10 +90,10 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   activeTab: {
-    backgroundColor: '#e0e0fb',
+    backgroundColor: colors.surface,
   },
   label: {
-    color: '#6366f1',
+    color: colors.primary,
     fontWeight: '600',
     fontSize: 14,
   },
@@ -116,18 +118,20 @@ const Navigation = () => {
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#6366f1" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false, animation: fade }}>
+      <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
         {isLoggedIn ? (
           <>
             <Stack.Screen name="AppTabs" component={AppTabs} />
             <Stack.Screen name="EditProfile" component={EditProfile} />
+            <Stack.Screen name="EventDetails" component={EventDetails} />
+            <Stack.Screen name="Admin" component={Admin} />
           </>
         ) : (
           <>

@@ -6,29 +6,15 @@ import {
   Image,
   Pressable,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { colors } from '../../theme/colors.js';
 
 const Main = () => {
   const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#1A3AFF', '#0A1FA8', '#060D5C']}
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-      />
-
-      <LinearGradient
-        colors={['#6B8FFF', '#3A5FFF', 'transparent']}
-        style={[StyleSheet.absoluteFill, styles.glowOverlay]}
-        start={{ x: 0.5, y: 0.3 }}
-        end={{ x: 0.5, y: 0.8 }}
-      />
-
       <SafeAreaView style={styles.viewContainer}>
         <View style={styles.logoContainer}>
           <View style={styles.appImageContainer}>
@@ -39,6 +25,7 @@ const Main = () => {
             />
           </View>
           <Text style={styles.appName}>CampLink</Text>
+          <Text style={styles.tagline}>Your campus, connected.</Text>
         </View>
         <View style={styles.bottom}>
           <TouchableOpacity
@@ -48,7 +35,7 @@ const Main = () => {
             <Text style={styles.primaryText}>Let's Get Started</Text>
           </TouchableOpacity>
           <View style={styles.signInBar}>
-            <Text style={{ color: 'white' }}>Already have an account?</Text>
+            <Text style={styles.signInLabel}>Already have an account?</Text>
             <Pressable onPress={() => navigation.navigate('Login')}>
               <Text style={styles.signInText}>Sign in</Text>
             </Pressable>
@@ -64,6 +51,7 @@ export default Main;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   viewContainer: {
     flex: 1,
@@ -76,11 +64,13 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     letterSpacing: 0.5,
   },
-  glowOverlay: {
-    opacity: 0.5,
+  tagline: {
+    fontSize: 14,
+    marginTop: 6,
+    color: colors.textSecondary,
   },
   bottom: {
     paddingHorizontal: 28,
@@ -93,23 +83,25 @@ const styles = StyleSheet.create({
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'blue',
+    backgroundColor: colors.primary,
     borderRadius: 50,
   },
   primaryText: {
-    color: 'white',
+    color: colors.background,
     fontSize: 16,
-    fontWeight: 600,
+    fontWeight: '600',
     letterSpacing: 0.3,
   },
   appImageContainer: {
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   appImage: {
     height: 90,
@@ -121,8 +113,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
+  signInLabel: {
+    color: colors.textSecondary,
+  },
   signInText: {
-    color: 'blue',
+    color: colors.primary,
     fontWeight: '600',
     textDecorationLine: 'underline',
   },

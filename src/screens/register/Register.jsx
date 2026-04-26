@@ -15,10 +15,10 @@ import {
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../../utils/axios.js';
+import { colors } from '../../theme/colors.js';
 
 const DEPARTMENTS = [
   'Computer Science Engg.',
@@ -76,6 +76,7 @@ const Register = () => {
   const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [department, setDepartment] = useState('');
   const [year, setYear] = useState('');
   const [showDeptModal, setShowDeptModal] = useState(false);
@@ -136,10 +137,7 @@ const Register = () => {
   }
 
   return (
-    <LinearGradient
-      colors={['#0f2027', '#203a43', '#2c5364']}
-      style={styles.gradient}
-    >
+    <View style={styles.gradient}>
       <SafeAreaView style={styles.safe}>
         <KeyboardAvoidingView
           style={styles.flex}
@@ -184,19 +182,19 @@ const Register = () => {
                   </View>
                   <Text style={styles.errorText}>{error}</Text>
                   <TouchableOpacity onPress={dismissError} hitSlop={8}>
-                    <Icon name="x" size={16} color="rgba(255,255,255,0.5)" />
+                    <Icon name="x" size={16} color={colors.textSecondary} />
                   </TouchableOpacity>
                 </Animated.View>
               )}
 
               <View style={styles.inputRow}>
                 <View style={styles.iconCircle}>
-                  <Icon name="user" size={18} color="#203a43" />
+                  <Icon name="user" size={18} color={colors.primary} />
                 </View>
                 <TextInput
                   style={styles.textInput}
                   placeholder="User Name"
-                  placeholderTextColor="rgba(255,255,255,0.45)"
+                  placeholderTextColor={colors.textSecondary}
                   value={userName}
                   onChangeText={setUserName}
                   autoCapitalize="none"
@@ -205,12 +203,12 @@ const Register = () => {
 
               <View style={styles.inputRow}>
                 <View style={styles.iconCircle}>
-                  <Icon name="mail" size={18} color="#203a43" />
+                  <Icon name="mail" size={18} color={colors.primary} />
                 </View>
                 <TextInput
                   style={styles.textInput}
                   placeholder="e-mail"
-                  placeholderTextColor="rgba(255,255,255,0.45)"
+                  placeholderTextColor={colors.textSecondary}
                   value={email}
                   onChangeText={setEmail}
                   autoCapitalize="none"
@@ -226,7 +224,7 @@ const Register = () => {
                 onPress={() => setShowDeptModal(true)}
               >
                 <View style={styles.iconCircle}>
-                  <Icon name="briefcase" size={18} color="#203a43" />
+                  <Icon name="briefcase" size={18} color={colors.primary} />
                 </View>
                 <Text
                   style={[
@@ -239,7 +237,7 @@ const Register = () => {
                 <Icon
                   name="chevron-down"
                   size={18}
-                  color="rgba(255,255,255,0.45)"
+                  color={colors.textSecondary}
                 />
               </TouchableOpacity>
 
@@ -249,7 +247,7 @@ const Register = () => {
                 onPress={() => setShowYearModal(true)}
               >
                 <View style={styles.iconCircle}>
-                  <Icon name="calendar" size={18} color="#203a43" />
+                  <Icon name="calendar" size={18} color={colors.primary} />
                 </View>
                 <Text
                   style={[
@@ -262,25 +260,36 @@ const Register = () => {
                 <Icon
                   name="chevron-down"
                   size={18}
-                  color="rgba(255,255,255,0.45)"
+                  color={colors.textSecondary}
                 />
               </TouchableOpacity>
 
               <View style={styles.inputRow}>
                 <View style={styles.iconCircle}>
-                  <Icon name="lock" size={18} color="#203a43" />
+                  <Icon name="lock" size={18} color={colors.primary} />
                 </View>
                 <TextInput
                   style={styles.textInput}
                   placeholder="password"
-                  placeholderTextColor="rgba(255,255,255,0.45)"
+                  placeholderTextColor={colors.textSecondary}
                   value={password}
                   onChangeText={setPassword}
-                  secureTextEntry
+                  secureTextEntry={!showPassword}
                   autoCapitalize="none"
                   autoComplete="password"
                   textContentType="password"
                 />
+                <TouchableOpacity
+                  style={styles.passwordToggle}
+                  onPress={() => setShowPassword(prev => !prev)}
+                  activeOpacity={0.7}
+                >
+                  <Icon
+                    name={showPassword ? 'eye-off' : 'eye'}
+                    size={18}
+                    color={colors.textSecondary}
+                  />
+                </TouchableOpacity>
               </View>
 
               <TouchableOpacity
@@ -317,14 +326,14 @@ const Register = () => {
         onSelect={setYear}
         title="Select Year"
       />
-    </LinearGradient>
+    </View>
   );
 };
 
 export default Register;
 
 const styles = StyleSheet.create({
-  gradient: { flex: 1 },
+  gradient: { flex: 1, backgroundColor: colors.background },
   safe: { flex: 1 },
   flex: { flex: 1 },
 
@@ -342,10 +351,12 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   appImage: {
     height: 60,
@@ -354,34 +365,34 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#ffffff',
+    color: colors.textPrimary,
     letterSpacing: 0.5,
   },
   tagline: {
     fontSize: 13,
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: colors.surface,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: colors.border,
     padding: 24,
   },
   cardTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#ffffff',
+    color: colors.textPrimary,
     marginBottom: 20,
   },
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,70,70,0.12)',
+    backgroundColor: '#FCEEEF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,100,100,0.25)',
+    borderColor: '#F4C7CC',
     paddingHorizontal: 12,
     paddingVertical: 12,
     marginBottom: 16,
@@ -391,24 +402,24 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,70,70,0.15)',
+    backgroundColor: '#F8D9DD',
     alignItems: 'center',
     justifyContent: 'center',
   },
   errorText: {
     flex: 1,
     fontSize: 13,
-    color: '#ff9b9b',
+    color: '#A11A2C',
     fontWeight: '500',
     lineHeight: 18,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: colors.background,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: colors.border,
     paddingHorizontal: 12,
     paddingVertical: 10,
     marginBottom: 14,
@@ -418,7 +429,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.88)',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -430,30 +441,34 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     fontSize: 15,
-    color: '#ffffff',
+    color: colors.textPrimary,
     paddingVertical: 0,
+  },
+  passwordToggle: {
+    paddingHorizontal: 4,
+    paddingVertical: 2,
   },
 
   dropdownText: {
     flex: 1,
     fontSize: 15,
-    color: '#ffffff',
+    color: colors.textPrimary,
   },
   dropdownPlaceholder: {
-    color: 'rgba(255,255,255,0.45)',
+    color: colors.textSecondary,
   },
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center',
     paddingHorizontal: 32,
   },
   modalContent: {
-    backgroundColor: '#1a2f38',
+    backgroundColor: colors.background,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: colors.border,
     paddingVertical: 20,
     paddingHorizontal: 8,
     maxHeight: 380,
@@ -461,7 +476,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#ffffff',
+    color: colors.textPrimary,
     marginBottom: 16,
     paddingHorizontal: 16,
   },
@@ -472,28 +487,28 @@ const styles = StyleSheet.create({
   },
   modalItemText: {
     fontSize: 15,
-    color: 'rgba(255,255,255,0.85)',
+    color: colors.textPrimary,
   },
   modalSeparator: {
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: colors.border,
     marginHorizontal: 16,
   },
 
   button: {
-    backgroundColor: '#6366f1',
+    backgroundColor: colors.primary,
     borderRadius: 14,
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 6,
-    shadowColor: '#6366f1',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 10,
     elevation: 6,
   },
   buttonText: {
-    color: '#fff',
+    color: colors.background,
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.4,
@@ -504,11 +519,11 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   redirectText: {
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.textSecondary,
     fontSize: 13,
   },
   redirectLink: {
-    color: '#818cf8',
+    color: colors.primary,
     fontSize: 13,
     fontWeight: '600',
   },

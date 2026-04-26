@@ -1,115 +1,114 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   StyleSheet,
   Text,
   View,
   Pressable,
   Image,
-  ActivityIndicator,
+  StatusBar,
 } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/userAuth.jsx';
-import ImageCropPicker from 'react-native-image-crop-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { colors } from '../../theme/colors.js';
 import axios from '../../utils/axios.js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const STATS = [
-  { label: 'Events', value: 12 },
-  { label: 'RSVPs', value: 5 },
-  { label: 'Clubs', value: 3 },
-];
+const getInitials = name => {
+  if (!name) return 'CL';
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0].toUpperCase())
+    .join('');
+};
+
+const isAdminUser = user => {
+  return user?.role === 'admin' || user?.isAdmin === true;
+};
 
 const Profile = () => {
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { logout, user } = useAuth();
 
-  const MENU_ITEMS = [
-    { icon: 'user', label: 'Edit profile', danger: false, onPress: () => navigation.navigate('EditProfile') },
-    { icon: 'bell', label: 'Notifications', danger: false },
+  const eventId = user.registeredEvents;
+
+  const logoutHandler = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+
+      await axios.post(
+        '/auth/logout',
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      await logout();
+    } catch (error) {
+      console.log(error?.response?.data || error?.message);
+    }
+  };
+
+  const menuItems = [
+    ...(isAdminUser(user)
+      ? [
+          {
+            icon: 'shield',
+            label: 'Admin dashboard',
+            danger: false,
+            onPress: () => navigation.navigate('Admin'),
+          },
+        ]
+      : []),
+    {
+      icon: 'user',
+      label: 'Edit profile',
+      danger: false,
+      onPress: () => navigation.navigate('EditProfile'),
+    },
     {
       icon: 'log-out',
       label: 'Log out',
       danger: true,
-      onPress: () => logout(),
+      onPress: logoutHandler,
     },
   ];
 
-  const imageUploader = async () => {
-    try {
-      const image = await ImageCropPicker.openPicker({
-        mediaType: 'photo',
-        cropping: true,
-        cropperCircleOverlay: true,
-        width: 400,
-        height: 400,
-        compressImageQuality: 0.8,
-      });
-
-      const extension = image.path.split('.').pop() || 'jpg';
-      const customName = `${Date.now()}.${extension}`;
-
-      const formData = new FormData();
-      formData.append('image', {
-        uri: image.path,
-        name: customName,
-        type: image.mime || 'image/jpeg',
-      });
-
-      const token = await AsyncStorage.getItem('token');
-
-      const response = await axios.post('/auth/user/upload-image', formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-          Accept: 'application/json',
-        },
-      });
-
-      if (response.data?.profilePhotoUrl) {
-        setProfileImage(response.data.profilePhotoUrl);
-      }
-      console.log('SUCCESS:', response.data);
-    } catch (error) {
-      if (error.code !== 'E_PICKER_CANCELLED') {
-        console.log('UPLOAD ERROR:', error.response?.data || error.message);
-      }
-    }
-  };
+  const STATS = [
+    { label: 'Events', value: 12 },
+    { label: 'RSVPs', value: eventId.length },
+    { label: 'Clubs', value: 0 },
+  ];
 
   return (
-    <SafeAreaProvider
-      contentContainerStyle={[
-        styles.scrollContent,
-        { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 24 },
-      ]}
-      showsVerticalScrollIndicator={false}
-    >
+    <SafeAreaView style={styles.safe}>
+      <StatusBar backgroundColor={colors.background} barStyle="dark-content" />
       <View style={styles.main}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>My Profile</Text>
         </View>
+
         <View style={styles.avatarSection}>
           <View style={styles.avatarWrapper}>
-            <View style={styles.imageHolder}>
+            {user?.profilePhotoUrl ? (
               <Image
-                source={
-                  user?.profilePhotoUrl
-                    ? { uri: user.profilePhotoUrl }
-                    : require('../../../assets/logo.png')
-                }
+                source={{ uri: user.profilePhotoUrl }}
                 style={styles.appImage}
                 resizeMode="cover"
               />
-            </View>
-            {/* <Pressable style={styles.editAvatarBtn} onPress={imageUploader}>
-              <Icon name="camera" size={13} color="#fff" />
-            </Pressable> */}
+            ) : (
+              <View style={styles.avatarFallback}>
+                <Text style={styles.avatarFallbackText}>
+                  {getInitials(user?.name)}
+                </Text>
+              </View>
+            )}
           </View>
           <Text style={styles.userName}>{user?.name}</Text>
           <Text style={styles.userMeta}>
@@ -130,16 +129,16 @@ const Profile = () => {
         </View>
 
         <View style={styles.menuCard}>
-          {MENU_ITEMS.map((item, index) => (
+          {menuItems.map((item, index) => (
             <Pressable
               key={item.label}
               onPress={item.onPress}
               style={({ pressed }) => [
                 styles.menuRow,
-                index !== MENU_ITEMS.length - 1 && styles.menuRowBorder,
+                index !== menuItems.length - 1 && styles.menuRowBorder,
                 pressed && styles.menuRowPressed,
               ]}
-              android_ripple={{ color: '#f0f0f0' }}
+              android_ripple={{ color: '#C9D7E3' }}
             >
               <View
                 style={[
@@ -150,7 +149,7 @@ const Profile = () => {
                 <Icon
                   name={item.icon}
                   size={16}
-                  color={item.danger ? '#c0392b' : '#444'}
+                  color={item.danger ? '#AF3F3F' : colors.textSecondary}
                 />
               </View>
               <Text
@@ -165,25 +164,30 @@ const Profile = () => {
                 <Icon
                   name="chevron-right"
                   size={16}
-                  color="#bbb"
+                  color={colors.textSecondary}
                   style={styles.menuChevron}
                 />
               )}
             </Pressable>
           ))}
         </View>
-        <Text style={styles.versionText}>CampusLink v1.0.0</Text>
+
+        <Text style={styles.versionText}>Made with ❤️ by Team indecisive</Text>
       </View>
-    </SafeAreaProvider>
+    </SafeAreaView>
   );
 };
 
 export default Profile;
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   main: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
     padding: 20,
   },
   header: {
@@ -195,81 +199,86 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#111',
+    color: colors.textPrimary,
     letterSpacing: -0.5,
-  },
-  settingsBtn: {
-    padding: 8,
   },
   avatarSection: {
     alignItems: 'center',
-    marginBottom: 28,
+    marginBottom: 24,
   },
   avatarWrapper: {
-    width: 90,
-    height: 90,
-    position: 'relative',
+    width: 96,
+    height: 96,
     marginBottom: 14,
     borderWidth: 2,
-    borderColor: 'black',
+    borderColor: colors.primary,
     borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  imageHolder: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    alignItems: 'center',
-    justifyContent: 'center',
+    overflow: 'hidden',
   },
   appImage: {
-    height: 90,
-    width: 90,
-    borderRadius: 45,
+    height: 96,
+    width: 96,
+    borderRadius: 50,
   },
-  avatarInitials: {
-    color: '#fff',
-    fontSize: 28,
-    fontWeight: '600',
-    letterSpacing: 1,
-  },
-  editAvatarBtn: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#4f46e5',
+  avatarFallback: {
+    height: 96,
+    width: 96,
+    borderRadius: 50,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#f5f5f5',
+  },
+  avatarFallbackText: {
+    color: colors.background,
+    fontSize: 28,
+    fontWeight: '700',
   },
   userName: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#111',
+    color: colors.textPrimary,
     marginBottom: 4,
   },
   userMeta: {
     fontSize: 13,
-    color: '#888',
+    color: colors.textSecondary,
   },
   statsCard: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    paddingVertical: 18,
+    marginBottom: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
   },
   statItem: {
     flex: 1,
     alignItems: 'center',
   },
+  statDivider: {
+    width: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
+    marginVertical: 4,
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 3,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
   menuCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#e0e0e0',
+    borderColor: colors.border,
     overflow: 'hidden',
     marginBottom: 24,
   },
@@ -281,68 +290,38 @@ const styles = StyleSheet.create({
   },
   menuRowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: colors.border,
   },
   menuRowPressed: {
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#EEF2F6',
   },
   menuIconBox: {
     width: 34,
     height: 34,
-    borderRadius: 10,
-    backgroundColor: '#f3f3f3',
+    borderRadius: 50,
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14,
   },
   menuIconBoxDanger: {
-    backgroundColor: '#fff0f0',
+    backgroundColor: '#F9EDED',
   },
   menuLabel: {
     flex: 1,
     fontSize: 15,
-    color: '#222',
+    color: colors.textPrimary,
     fontWeight: '500',
   },
   menuLabelDanger: {
-    color: '#c0392b',
+    color: '#AF3F3F',
   },
   menuChevron: {
     marginLeft: 8,
   },
-
-  statsCard: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    paddingVertical: 18,
-    marginBottom: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#e0e0e0',
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statDivider: {
-    width: StyleSheet.hairlineWidth,
-    backgroundColor: '#e0e0e0',
-    marginVertical: 4,
-  },
-  statValue: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#111',
-    marginBottom: 3,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#999',
-    fontWeight: '500',
-  },
   versionText: {
     textAlign: 'center',
     fontSize: 12,
-    color: '#ccc',
+    color: colors.textSecondary,
   },
 });
