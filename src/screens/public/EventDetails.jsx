@@ -40,16 +40,18 @@ const formatDateTime = (eventDate, eventTime) => {
 const EventDetails = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const eventParameter = route.params?.event || null;
 
   const eventId =
     route.params?.eventId || eventParameter?.id || eventParameter?._id;
+  const normalizedEventId = eventId != null ? String(eventId) : '';
 
   const [event, setEvent] = useState(eventParameter || {});
   const [isLoading, setIsLoading] = useState(false);
   const [isRegistered, setIsRegistered] = useState(
-    user?.registeredEvents?.includes(eventId) || false
+    user?.registeredEvents?.some(id => String(id) === normalizedEventId) ||
+      false
   );
   const [posterLoadFailed, setPosterLoadFailed] = useState(false);
 
@@ -70,8 +72,11 @@ const EventDetails = () => {
   };
 
   useEffect(() => {
-    setIsRegistered(user?.registeredEvents?.includes(eventId) || false);
-  }, [user?.registeredEvents, eventId]);
+    const registeredEvents = user?.registeredEvents || [];
+    setIsRegistered(
+      registeredEvents.some(id => String(id) === normalizedEventId) || false,
+    );
+  }, [user?.registeredEvents, normalizedEventId]);
 
   useEffect(() => {
     if (!eventId) {
@@ -111,14 +116,27 @@ const EventDetails = () => {
     typeof posterUri === 'string' && posterUri.length > 0 && !posterLoadFailed;
 
   const handleRegister = async () => {
-    if (!eventId) {
+    if (!normalizedEventId) {
       Alert.alert('Error', 'Event ID is missing.');
       return;
     }
 
     try {
-      await axios.post(`/events/register/${eventId}`);
+      await axios.post(`/events/register/${normalizedEventId}`);
       setIsRegistered(true);
+      
+      // Update user context
+      const registeredEvents = user?.registeredEvents || [];
+      const updatedUser = {
+        ...user,
+        registeredEvents: registeredEvents.some(
+          id => String(id) === normalizedEventId,
+        )
+          ? registeredEvents
+          : [...registeredEvents, normalizedEventId],
+      };
+      await updateUser(updatedUser);
+      
       Alert.alert('Success', 'You have registered for this event.');
     } catch (error) {
       console.log(error?.response?.data || error?.message);
@@ -127,15 +145,31 @@ const EventDetails = () => {
   };
 
   const handleUnRegister = async () => {
-    if (!eventId) {
+    if (!normalizedEventId) {
       Alert.alert('Error', 'Event ID is missing.');
       return;
     }
 
     try {
-      await axios.delete(`/events/unregister/${eventId}`);
+      await axios.delete(`/events/unregister/${normalizedEventId}`);
       setIsRegistered(false);
-      Alert.alert('Successfully unregistered for the event')
+      
+      // Update user context to remove event from registeredEvents
+      const registeredEvents = user?.registeredEvents || [];
+      const updatedUser = {
+        ...user,
+        registeredEvents: registeredEvents.filter(
+          id => String(id) !== normalizedEventId,
+        ),
+      };
+      await updateUser(updatedUser);
+      
+      Alert.alert('Successfully unregistered for the event', '', [
+        {
+          text: 'OK',
+          onPress: () => navigation.goBack(),
+        },
+      ]);
     } catch (error) {
       console.log(error?.response?.data || error?.message);
       Alert.alert('Error', 'Could not un-register for the event.');

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,6 +6,7 @@ import {
   Pressable,
   ActivityIndicator,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import { colors } from '../../theme/colors';
 import Icon from 'react-native-vector-icons/Feather';
@@ -19,28 +20,43 @@ const MyEvents = () => {
   const [activeFilter, setActiveFilter] = React.useState('Present');
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const navigation = useNavigation();
   const { user } = useAuth();
   const eventIds = user?.registeredEvents;
 
+  const fetchEvents = useCallback(async ids => {
+    if (!ids || ids.length === 0) {
+      setEvents([]);
+      return;
+    }
+    try {
+      const normalizedIds = ids.map(id => String(id));
+      const eventPromises = normalizedIds.map(id => axios.get(`/events/${id}`));
+      const responses = await Promise.all(eventPromises);
+      const eventData = responses.map(res => res.data);
+      setEvents(eventData);
+    } catch (err) {
+      console.log('Failed to fetch registered events', err);
+      setEvents([]);
+    }
+  }, []);
+
   useEffect(() => {
-    const fetchEvents = async () => {
-      if (!eventIds || eventIds.length === 0) return;
-      try {
-        setLoading(true);
-        const eventPromises = eventIds.map(id => axios.get(`/events/${id}`));
-        const responses = await Promise.all(eventPromises);
-        const eventData = responses.map(res => res.data);
-        setEvents(eventData);
-      } catch (err) {
-        console.log('Failed to fetch registered events', err);
-      } finally {
-        setLoading(false);
-      }
+    const loadEvents = async () => {
+      setLoading(true);
+      await fetchEvents(eventIds);
+      setLoading(false);
     };
-    fetchEvents();
-  }, [eventIds]);
+    loadEvents();
+  }, [eventIds, fetchEvents]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchEvents(eventIds);
+    setRefreshing(false);
+  }, [eventIds, fetchEvents]);
 
   return (
     <View style={styles.root}>
@@ -93,6 +109,14 @@ const MyEvents = () => {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
         >
           {events.map(event => (
             <Pressable

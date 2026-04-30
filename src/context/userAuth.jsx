@@ -33,8 +33,13 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(false);
   };
 
+  const updateUser = async (updatedUserData) => {
+    await AsyncStorage.setItem('user', JSON.stringify(updatedUserData));
+    setUser(updatedUserData);
+  };
+
   return (
-    <AuthContext.Provider value={{ isLoggedIn, loading, login, logout, user }}>
+    <AuthContext.Provider value={{ isLoggedIn, loading, login, logout, user, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
